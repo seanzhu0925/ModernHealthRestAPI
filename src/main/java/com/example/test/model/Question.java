@@ -17,10 +17,10 @@ public class Question {
 
     private String description;
 
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Choice> choiceSet;
 
-    @OneToOne(mappedBy = "question")
+    @OneToOne(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private Activity activity;
 
     public Question(String description, Activity activity) {

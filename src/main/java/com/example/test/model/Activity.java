@@ -14,8 +14,8 @@ public class Activity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long activity_id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "question_id")
+    @OneToOne
+    @JoinColumn(name = "question_id", referencedColumnName = "question_id")
     private Question question;
 
     @ManyToOne

@@ -26,7 +26,7 @@ public class Program {
     @Size(max = 128)
     private String description;
 
-    @OneToMany(mappedBy = "program", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "program", cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
     private Set<Section> sectionSet;
 
