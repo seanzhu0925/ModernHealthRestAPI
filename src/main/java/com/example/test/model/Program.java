@@ -5,20 +5,23 @@ import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
-@Data
+@Setter
+@Getter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class Program {
+public class Program implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long program_id;
 
     @NotNull
-    @Column(unique=true)
+    @Column(unique = true)
     @Size(max = 60, message = "Name can't be more than 60 character")
     private String name;
 

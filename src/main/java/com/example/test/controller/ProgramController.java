@@ -53,6 +53,17 @@ public class ProgramController {
         }
     }
 
+    @PutMapping("/program/{id}")
+    public ResponseEntity<Program> updateProgram(@PathVariable("id") long id, @RequestBody Program program) {
+        Optional<Program> programData = serviceHandler.findByProgramId(id);
+
+        if (programData.isPresent()) {
+            return new ResponseEntity<>(serviceHandler.updateExistingProgram(program), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @DeleteMapping("/program/{id}")
     public ResponseEntity<HttpStatus> deleteProgram(@PathVariable("id") long id) {
         try {

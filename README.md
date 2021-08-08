@@ -1,8 +1,9 @@
 # ModernHealthRestAPI
- ModernHealthRestAPI
+
+ModernHealthRestAPI
 
 Tech Stack:
-Java, Spring Boot, Spring Data JPA, Mysql
+Java, Spring Boot, Spring Data JPA, Mysql and H2 in-memory database
 
 Setup steps
 

@@ -84,6 +84,44 @@ public class ServiceHandler {
     }
 
     @Transactional
+    public Program updateExistingProgram(Program program) {
+        Program current = programRepository.findByName(program.getName());
+
+        if (current != null) {
+            log.info("Existing program is being returned");
+            programRepository.save(program);
+
+            // save section in db
+            for (Section section : current.getSectionSet()) {
+                log.info("New Section is being created");
+                sectionRepository.save(section);
+
+                if (section.getImageContent() == null) {
+                    for (Activity activity : section.getActivitySet()) {
+                        log.info("New Question is being created");
+                        Question question = activity.getQuestion();
+                        questionRepository.save(question);
+                        for (Choice choice : question.getChoiceSet()) {
+                            log.info("New Choice is being created");
+                            choiceRepository.save(choice);
+                        }
+                        log.info("New Activity is being created with multiple choice");
+                        activityRepository.save(new Activity(activity.getQuestion(), section));
+                    }
+
+                } else {
+                    log.info("New Activity is being created with html contents");
+                    activityRepository.save(new Activity(Base64.getEncoder().encodeToString(section.getImageContent()), section));
+                }
+            }
+        } else {
+            log.error("Program does not exist");
+        }
+
+        return program;
+    }
+
+    @Transactional
     public void deleteExistingProgram(long id) {
         programRepository.deleteById(id);
     }
