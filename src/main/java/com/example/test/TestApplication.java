@@ -17,25 +17,21 @@ public class TestApplication {
 
     public static void main(String[] args) {
 
+        // This is a demo test to test create a brand-new Program
         ConfigurableApplicationContext configurableApplicationContext = SpringApplication.run(TestApplication.class, args);
         ProgramRepository programRepository = configurableApplicationContext.getBean(ProgramRepository.class);
         SectionRepository sectionRepository = configurableApplicationContext.getBean(SectionRepository.class);
         ActivityRepository activityRepository = configurableApplicationContext.getBean(ActivityRepository.class);
-        QuestionRepository questionRepository = configurableApplicationContext.getBean(QuestionRepository.class);
-        ChoiceRepository choiceRepository = configurableApplicationContext.getBean(ChoiceRepository.class);
-
 
         Program program = new Program("This is a Program", "description");
-        Section section = new Section("This is a Section", new byte[]{}, "section name", 1, program);
-        Section section1 = new Section("This is a Section1", new byte[]{}, "section name", 2, program);
+        Section section2 = new Section("This is a Section2", new byte[]{}, "section name1", 1, program);
+        Section section1 = new Section("This is a Section1", new byte[]{}, "section name2", 2, program);
 
+        Activity activityHTML = new Activity("This is a demo html contents", section2);
 
-        Activity activity = new Activity("activity 1", section);
+        Activity activityQuestion = new Activity();
 
-        Activity activity1 = new Activity();
-
-
-        Question question = new Question("Question1", activity);
+        Question question = new Question("Question1", activityQuestion);
 
         Choice choice = new Choice(question, "choice");
         Choice choice1 = new Choice(question, "choice1");
@@ -46,23 +42,28 @@ public class TestApplication {
 
         question.setChoiceSet(choiceSet);
 
-        activity1.setQuestion(question);
-        activity1.setSection(section1);
+        activityQuestion.setQuestion(question);
+        activityQuestion.setSection(section1);
 
-        section.setActivitySet(new HashSet<>(Collections.singletonList(activity)));
-        section1.setActivitySet(new HashSet<>(Collections.singletonList(activity1)));
+        section1.setActivitySet(new HashSet<>(Collections.singletonList(activityQuestion)));
+        section2.setActivitySet(new HashSet<>(Collections.singletonList(activityHTML)));
 
-        program.setSectionSet(new HashSet<>(Arrays.asList(section1, section)));
+        program.setSectionSet(new HashSet<>(Arrays.asList(section1, section2)));
 
-        Program savedPrgoram = programRepository.save(program);
-        log.info("saved Program Id-----> " + savedPrgoram.getProgram_id() + "  Program description-----> " + savedPrgoram.getDescription()
-                + "  Program name-----> " + savedPrgoram.getName());
+        Program savedProgram = programRepository.save(program);
+        log.info("Saved Program Id-----> " + savedProgram.getProgram_id() + "  Program Description-----> " + savedProgram.getDescription()
+                + "  Program name-----> " + savedProgram.getName());
 
-        List<Section> sectionList = sectionRepository.findByProgram(savedPrgoram);
+        List<Section> sectionList = sectionRepository.findByProgram(savedProgram);
         sectionList.forEach(current ->
-                log.info("saved Section Id-----> " + current.getSection_id() + "  Associated with program Id-----> " + current.getProgram().getProgram_id())
+                log.info("Saved Section Id-----> " + current.getSection_id() + "  Associated with Program Id-----> " + current.getProgram().getProgram_id() + "  Section Description-----> " + current.getDescription())
         );
 
-
+        sectionList.forEach(sec -> {
+            List<Activity> activityList = activityRepository.findBySection(sec);
+            activityList.forEach(acti ->
+                    log.info("Saved Activity Id-----> " + acti.getActivity_id() + "  Associated with Section Id-----> " + acti.getSection().getSection_id())
+            );
+        });
     }
 }

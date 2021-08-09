@@ -29,8 +29,8 @@ public class Program implements Serializable {
     @Size(max = 128)
     private String description;
 
-    @OneToMany(mappedBy = "program", cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
+    @OneToMany(mappedBy = "program", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Section> sectionSet;
 
     public Program(String name, String description) {

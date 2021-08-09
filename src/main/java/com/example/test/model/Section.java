@@ -1,27 +1,30 @@
 package com.example.test.model;
 
 import com.sun.istack.NotNull;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
-public class Section {
+public class Section implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long section_id;
 
     @ManyToOne
     @JoinColumn(name = "program_id", nullable = false)
     private Program program;
 
-    @OneToMany(mappedBy = "section")
+    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Activity> activitySet;
 
     @NotNull
