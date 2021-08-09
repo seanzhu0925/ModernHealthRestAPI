@@ -8,9 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ServiceHandler {
@@ -50,37 +48,45 @@ public class ServiceHandler {
         Program current = programRepository.findByName(program.getName());
         if (current == null) {
             current = new Program(program.getName(), program.getDescription());
-            log.info("New program is being created");
-            programRepository.save(current);
 
-            // save section in db
-            for (Section section : current.getSectionSet()) {
+            for (Section section : program.getSectionSet()) {
                 log.info("New Section is being created");
-                sectionRepository.save(new Section(section.getDescription(), section.getImageContent(), section.getName(), section.getOrder_index(), program));
+                Section addingSection = new Section(section.getDescription(), section.getImageContent(), section.getName(), section.getOrder_index(), program);
 
-                if (section.getImageContent() == null) {
-                    for (Activity activity : section.getActivitySet()) {
-                        log.info("New Question is being created");
-                        Question question = activity.getQuestion();
-                        questionRepository.save(question);
+                for (Activity activity : section.getActivitySet()) {
+                    log.info("New Question is being created");
+                    Question question = activity.getQuestion();
+
+                    if (question != null) {
+                        Set<Choice> choiceSet = new HashSet<>();
                         for (Choice choice : question.getChoiceSet()) {
                             log.info("New Choice is being created");
-                            choiceRepository.save(choice);
+                            choice.setQuestion(question);
+                            choiceSet.add(choice);
                         }
-                        log.info("New Activity is being created with multiple choice");
-                        activityRepository.save(new Activity(activity.getQuestion(), section));
+                        question.setChoiceSet(choiceSet);
+                        question.setActivity(activity);
+                        activity.setQuestion(question);
+                        activity.setSection(addingSection);
+                        addingSection.setActivitySet(new HashSet<>(Collections.singletonList(activity)));
+                    } else if (activity.getHtmlContent() != null) {
+                        log.info("New HTML content is being created");
+                        activity.setHtmlContent(activity.getHtmlContent());
+                        addingSection.setActivitySet(new HashSet<>(Collections.singletonList(activity)));
+                    } else {
+                        log.info("Both activity HTML content and Question are empty!");
                     }
-
-                } else {
-                    log.info("New Activity is being created with html contents");
-                    activityRepository.save(new Activity(Base64.getEncoder().encodeToString(section.getImageContent()), section));
                 }
+
+                current.getSectionSet().add(addingSection);
             }
+            log.info("New program is being created");
+            programRepository.save(current);
         } else {
             log.error("Program already existed");
         }
 
-        return program;
+        return current;
     }
 
     @Transactional
@@ -88,37 +94,63 @@ public class ServiceHandler {
         Program current = programRepository.findByName(program.getName());
 
         if (current != null) {
+            current.setName(program.getName());
+            current.setDescription(program.getDescription());
             log.info("Existing program is being returned");
-            programRepository.save(program);
+            for (Section section : program.getSectionSet()) {
+                log.info("Existing Section is being updated");
+                Section currentSection = sectionRepository.findBySection_Id(section.getSection_id());
+                if (currentSection != null) {
+                    currentSection.setDescription(section.getDescription());
+                    currentSection.setName(section.getName());
+                    currentSection.setImageContent(section.getImageContent());
+                    currentSection.setOrder_index(section.getOrder_index());
+                    currentSection.setProgram(program);
 
-            // save section in db
-            for (Section section : current.getSectionSet()) {
-                log.info("New Section is being created");
-                sectionRepository.save(section);
+                    // find existing Activity
+                    for(Activity act : currentSection.getActivitySet()){
+                        for(Activity inputAct : section.getActivitySet()){
+                            // need to update existing Activity
+                        }
+                    }
 
-                if (section.getImageContent() == null) {
+                    // insert new Activity for current Section I am working on
+                    current.getSectionSet().add(currentSection);
+                } else {
+                    Section newSection = new Section(section.getDescription(), section.getImageContent(), section.getName(), section.getOrder_index(), program);
                     for (Activity activity : section.getActivitySet()) {
                         log.info("New Question is being created");
                         Question question = activity.getQuestion();
-                        questionRepository.save(question);
-                        for (Choice choice : question.getChoiceSet()) {
-                            log.info("New Choice is being created");
-                            choiceRepository.save(choice);
-                        }
-                        log.info("New Activity is being created with multiple choice");
-                        activityRepository.save(new Activity(activity.getQuestion(), section));
-                    }
 
-                } else {
-                    log.info("New Activity is being created with html contents");
-                    activityRepository.save(new Activity(Base64.getEncoder().encodeToString(section.getImageContent()), section));
+                        if (question != null) {
+                            Set<Choice> choiceSet = new HashSet<>();
+                            for (Choice choice : question.getChoiceSet()) {
+                                log.info("New Choice is being created");
+                                choice.setQuestion(question);
+                                choiceSet.add(choice);
+                            }
+                            question.setChoiceSet(choiceSet);
+                            question.setActivity(activity);
+                            activity.setQuestion(question);
+                            activity.setSection(newSection);
+                            newSection.setActivitySet(new HashSet<>(Collections.singletonList(activity)));
+                        } else if (activity.getHtmlContent() != null) {
+                            log.info("New HTML content is being created");
+                            activity.setHtmlContent(activity.getHtmlContent());
+                            newSection.setActivitySet(new HashSet<>(Collections.singletonList(activity)));
+                        } else {
+                            log.info("Both activity HTML content and Question are empty!");
+                        }
+                    }
+                    current.getSectionSet().add(newSection);
                 }
             }
+            log.info("Existing program is being updated");
+            programRepository.save(current);
         } else {
             log.error("Program does not exist");
         }
-
-        return program;
+        return current;
     }
 
     @Transactional
