@@ -9,5 +9,8 @@ import java.util.List;
 
 @Repository
 public interface SectionRepository extends JpaRepository<Section, Long> {
+
     List<Section> findByProgram(Program programId);
+
+    Section findBySection_Id(Long sectionId);
 }
